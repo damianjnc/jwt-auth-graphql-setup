@@ -5,12 +5,14 @@ import {
   Resolver,
   ObjectType,
   Query,
-  Ctx
+  Ctx,
+  UseMiddleware
 } from 'type-graphql'
 import { compare, hash } from 'bcryptjs'
-import { sign } from 'jsonwebtoken'
 import { User } from './entity/User'
 import { MyContext } from './MyContext'
+import { createAccessToken, createRefreshToken } from './auth'
+import { isAuth } from './isAuth'
 
 @ObjectType()
 class LoginResponse {
@@ -23,6 +25,12 @@ export class UserResolver {
   @Query(() => String)
   hello() {
     return 'hi'
+  }
+
+  @Query(() => String)
+  @UseMiddleware(isAuth)
+  bye() {
+    return 'bye'
   }
 
   @Query(() => [User])
@@ -49,15 +57,11 @@ export class UserResolver {
     }
 
     //  login successful
-    res.cookie(
-      'jid',
-      sign({ userId: user.id }, 'secret2', { expiresIn: '7d' }),
-      {
-        httpOnly: true
-      }
-    )
+    res.cookie('jid', createRefreshToken(user), {
+      httpOnly: true
+    })
     return {
-      accessToken: sign({ userId: user.id }, 'secret', { expiresIn: '15m' })
+      accessToken: createAccessToken(user)
     }
   }
 
