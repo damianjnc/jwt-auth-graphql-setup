@@ -11,6 +11,7 @@ import {
 } from 'type-graphql'
 import { compare, hash } from 'bcryptjs'
 import { getConnection } from 'typeorm'
+import { verify } from 'jsonwebtoken'
 
 import { User } from './entity/User'
 import { MyContext } from './MyContext'
@@ -41,6 +42,25 @@ export class UserResolver {
   @Query(() => [User])
   users() {
     return User.find()
+  }
+
+  @Query(() => User, { nullable: true })
+  me(@Ctx() context: MyContext) {
+    const authorization = context.req.headers['authorization']
+
+    if (!authorization) {
+      return null
+    }
+
+    try {
+      const token = authorization.split(' ')[1]
+      const payload: any = verify(token, process.env.ACCESS_TOKEN_SECRET!)
+      context.payload = payload as any
+      return User.findOne(payload.userId)
+    } catch (err) {
+      console.log(err)
+      return null
+    }
   }
 
   @Mutation(() => Boolean)

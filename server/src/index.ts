@@ -6,13 +6,19 @@ import { buildSchema } from 'type-graphql'
 import { createConnection } from 'typeorm'
 import cookieParser from 'cookie-parser'
 import { verify } from 'jsonwebtoken'
+import cors from 'cors'
 import { UserResolver } from './UserResolver'
 import { createAccessToken, createRefreshToken } from './auth'
 import { sendRefreshToken } from './sendRefreshToken'
 import { User } from './entity/User'
-
 ;(async () => {
   const app = express()
+  app.use(
+    cors({
+      origin: 'http://localhost:3000',
+      credentials: true
+    })
+  )
   app.use(cookieParser())
 
   app.get('/', (_req, res) => res.send('Hello'))
@@ -33,7 +39,7 @@ import { User } from './entity/User'
 
     // token is valid
     // and we can send back an access token
-    const user = await User.findOne({id: payload.userId})
+    const user = await User.findOne({ id: payload.userId })
 
     if (!user) {
       return res.send({ ok: false, accessToken: '' })
@@ -59,7 +65,7 @@ import { User } from './entity/User'
     context: ({ req, res }) => ({ req, res })
   })
 
-  apolloServer.applyMiddleware({ app })
+  apolloServer.applyMiddleware({ app, cors: false })
 
   app.listen(4000, () => console.log('server is running on port 4000'))
 })()

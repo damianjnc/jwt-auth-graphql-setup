@@ -1,22 +1,33 @@
-import React from 'react'
-import {useQuery} from '@apollo/react-hooks'
-import {gql} from 'apollo-boost'
+import React, { useEffect, useState } from 'react'
+import Routes from './Routes'
+import { setAccessToken } from './accessToken'
 
-function App() {
-  const {data, loading} = useQuery(gql`
-    {
-      hello
+interface Props {}
+
+const App: React.FC<Props> = () => {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await fetch('http://localhost:4000/refresh-token', {
+        method: 'POST',
+        credentials: 'include'
+      })
+
+      const { accessToken } = await result.json()
+
+      setAccessToken(accessToken)
+      setLoading(false)
     }
 
-  `)
+    fetchData()
+  }, [])
 
-  if(loading) {
+  if (loading) {
     return <div>Loading...</div>
   }
 
-  return (
-      <div>{JSON.stringify(data)}</div>
-  )
+  return <Routes />
 }
 
-export default App;
+export default App
