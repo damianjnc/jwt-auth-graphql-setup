@@ -20,7 +20,7 @@ const App: React.FC<Props> = () => {
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().then(sth => console.log(sth))
   }, [])
 
   if (loading) {

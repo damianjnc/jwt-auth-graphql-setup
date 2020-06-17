@@ -15,7 +15,7 @@ import { User } from './entity/User'
   const app = express()
   app.use(
     cors({
-      origin: 'http://localhost:3000',
+      origin: 'http://localhost:3002',
       credentials: true
     })
   )
